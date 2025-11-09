@@ -1,3 +1,4 @@
+# app/models.py
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
@@ -7,43 +8,53 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
+    google_id = Column(String, unique=True, index=True, nullable=False) #구글 OAuth 로그인
+    email = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=True)
+    profile_image = Column(String, nullable=True) # google 프로필 이미지 URL
+    is_active = Column(Boolean, default = True)
+    is_superuser = Column(Boolean, default = False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    person_photos = relationship("PersonPhoto", back_populates="user")
+    cloth_photos = relationship("ClothPhoto", back_populates="user")
+    result_photos = relationship("ResultPhoto", back_populates="user")
 
-class Photo(Base):
-    __tablename__ = "photos"
+
+class PersonPhoto(Base): # 사람 사진 저장
+    __tablename__ = "person_photos"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, nullable=False)  # ForeignKey("users.id") 로 나중에 확장 가능
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     filename_original = Column(String, nullable=False)
     filename = Column(String, unique=True, nullable=False)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
 
-class Product(Base):
-    __tablename__ = "products"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)             # 이름 (파일명 기반 자동 생성됨)
-    price = Column(Integer, nullable=False)           # 가격
-    fitting_type = Column(String, nullable=False)     # 피팅 구분 ("upper", "lower", "overall","etc") -> 합성 시 필요한 정보
-    image_filename = Column(String, unique=True, nullable=False)  # cloths 폴더 안의 파일명
-    tryon_available = Column(Boolean, default=True)   # 가상 피팅 지원 여부
-    created_at = Column(DateTime, default=datetime.utcnow)
+    user = relationship("User", back_populates="person_photos")
+    result_photos = relationship("ResultPhoto", back_populates="person_photo")
 
-class Cart(Base):
-    __tablename__ = "cart"
+class ClothPhoto(Base): # 옷 사진 저장
+    __tablename__ = "cloth_photos"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    cloth_id = Column(Integer, ForeignKey("products.id"))
-    quantity = Column(Integer, default=1)
-    # Product 모델과 관계 설정
-    product = relationship("Product", backref="cart_items")
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    filename_original = Column(String, nullable=False)
+    filename = Column(String, unique=True, nullable=False)
+    fitting_type = Column(String, nullable=False, default='upper')
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
 
-class Result(Base):
-    __tablename__ = "results"
+    user = relationship("User", back_populates="cloth_photos")
+    result_photos = relationship("ResultPhoto", back_populates="cloth_photo")
+
+
+class ResultPhoto(Base): # 결과 저장
+    __tablename__ = "result_photos"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    photo_id = Column(Integer, ForeignKey("photos.id"))
-    cloth_id = Column(Integer, ForeignKey("products.id"))
-    result_path = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    person_photo_id = Column(Integer, ForeignKey("person_photos.id"), nullable=False)
+    cloth_photo_id = Column(Integer, ForeignKey("cloth_photos.id"), nullable =False)
+    filename = Column(String,unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="result_photos")
+    person_photo = relationship("PersonPhoto", back_populates="result_photos")
+    cloth_photo = relationship("ClothPhoto", back_populates="result_photos")
 

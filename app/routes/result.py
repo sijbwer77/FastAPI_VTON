@@ -1,4 +1,4 @@
-# routes/result.py
+# app/routes/result.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
@@ -8,40 +8,34 @@ from app.database import get_db
 
 router = APIRouter(prefix="/results", tags=["results"])
 
-# 🔹 특정 결과 1개 조회 (이미지 파일 반환)
-@router.get("/{user_id}/{result_id}")
-def get_result(user_id: int, result_id: int, db: Session = Depends(get_db)):
-    result = db.query(models.Result).filter_by(id=result_id, user_id=user_id).first()
-    if not result:
-        raise HTTPException(status_code=404, detail="결과를 찾을 수 없습니다.")
-
-    # DB에는 파일명만 저장 (예: abc123_result.png)
-    file_path = os.path.join("resources/results", result.result_path)
+# 개별 이미지
+@router.get("/image/{filename}")
+def get_result_image(filename: str):
+    file_path = os.path.join("resources/results", filename)
 
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail=f"파일이 없습니다: {file_path}")
+        raise HTTPException(status_code=404, detail="파일이 존재하지 않습니다.")
 
     return FileResponse(file_path)
 
-
-# 🔹 유저의 모든 결과 리스트 조회 (JSON, 이미지 URL 포함)
+# 모든 결과 리스트 조회
 @router.get("/{user_id}")
 def list_results(user_id: int, db: Session = Depends(get_db)):
     results = (
-        db.query(models.Result)
-        .filter(models.Result.user_id == user_id)
-        .order_by(models.Result.created_at.desc())
+        db.query(models.ResultPhoto)
+        .filter(models.ResultPhoto.user_id == user_id)
+        .order_by(models.ResultPhoto.created_at.desc())
         .all()
     )
 
     return [
         {
-            "id": r.id,
-            "photo_id": r.photo_id,
-            "cloth_id": r.cloth_id,
-            # 프론트에서 바로 <img src>로 쓸 수 있도록 API URL 반환
-            "image_url": f"/results/{user_id}/{r.id}",
-            "created_at": r.created_at,
+            "id": result.id,
+            "filename": result.filename,
+            "person_photo_id": result.person_photo_id,
+            "cloth_photo_id": result.cloth_photo_id,
+            "created_at": result.created_at,
+            "image_url": f"/results/image/{result.filename}",
         }
-        for r in results
+        for result in results
     ]
