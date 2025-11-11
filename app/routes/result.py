@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
 import os
+from app.config import settings
 from app.database import get_db
 from app.services.result_service import ResultService
 from app.repositories.result_repository import ResultRepository
@@ -17,7 +18,7 @@ def get_result_service(db: Session = Depends(get_db)) -> ResultService:
 # 개별 이미지
 @router.get("/image/{filename}")
 def get_result_image(filename: str):
-    file_path = os.path.join("resources/results", filename)
+    file_path = os.path.join(settings.RESULT_RESOURCE_DIR, filename)
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="파일이 존재하지 않습니다.")

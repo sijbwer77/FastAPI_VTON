@@ -1,4 +1,5 @@
 import os, uuid
+from app.config import settings
 from app.repositories.photo_repository import PhotoRepository
 from app.repositories.result_repository import ResultRepository
 from vton.run_vton import run_vton
@@ -26,8 +27,8 @@ class TryonService:
             raise PhotoNotFoundError("선택한 옷 사진을 찾을 수 없습니다.")
 
         # 3) 파일 경로 생성
-        person_path = f"./resources/persons/{person_photo.filename}"
-        cloth_path = f"./resources/cloths/{cloth_photo.filename}"
+        person_path = os.path.join(settings.PERSON_RESOURCE_DIR, person_photo.filename)
+        cloth_path = os.path.join(settings.CLOTH_RESOURCE_DIR, cloth_photo.filename)
 
         if not os.path.exists(person_path):
             raise VtonProcessingError("사람 이미지 파일이 존재하지 않습니다.")
@@ -36,8 +37,7 @@ class TryonService:
             raise VtonProcessingError("옷 이미지 파일이 존재하지 않습니다.")
 
         result_filename = f"{uuid.uuid4().hex}_result.png"
-        result_path = f"./resources/results/{result_filename}"
-        os.makedirs(os.path.dirname(result_path), exist_ok=True) # Ensure results directory exists
+        result_path = os.path.join(settings.RESULT_RESOURCE_DIR, result_filename)
 
         # 4) VTON 실행
         try:

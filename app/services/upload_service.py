@@ -2,6 +2,7 @@ import os, uuid
 from datetime import datetime
 from PIL import Image
 from fastapi import UploadFile, HTTPException
+from app.config import settings
 from app.repositories.upload_repository import UploadRepository
 from app import models # For type hinting the return value
 
@@ -22,8 +23,7 @@ class UploadService:
 
         ext = os.path.splitext(file.filename)[1].lower()
         save_name = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex}{ext}"
-        save_path = os.path.join('./resources/persons', save_name)
-        os.makedirs(os.path.dirname(save_path), exist_ok=True) # Ensure persons directory exists
+        save_path = os.path.join(settings.PERSON_RESOURCE_DIR, save_name)
 
         contents = await file.read()
         with open(save_path, "wb") as f:
@@ -49,8 +49,7 @@ class UploadService:
 
         ext = os.path.splitext(file.filename)[1].lower()
         save_name = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex}{ext}"
-        save_path = os.path.join('./resources/cloths', save_name)
-        os.makedirs(os.path.dirname(save_path), exist_ok=True) # Ensure cloths directory exists
+        save_path = os.path.join(settings.CLOTH_RESOURCE_DIR, save_name)
 
         contents = await file.read()
         with open(save_path, "wb") as f:

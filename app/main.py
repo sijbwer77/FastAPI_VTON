@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import models
 from app.database import engine
 
+from app.config import settings
+
 # 프로젝트 경로 추가
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # catvton_api 절대경로
 sys.path.append(os.path.join(BASE_DIR, "vton"))
@@ -20,14 +22,9 @@ models.Base.metadata.create_all(bind=engine)  # 테이블 자동 생성
 app = FastAPI()
 
 # CORS 설정
-ALLOWED_ORIGINS = [
-    "*",
-    "http://western-essex.gl.at.ply.gg:23705",
-    "https://western-essex.gl.at.ply.gg:23705"
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=False,    # 쿠키/세션/인증 헤더를 쓸 때만 True
     allow_methods=["*"],
     allow_headers=["*"],
