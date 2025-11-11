@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import RedirectResponse
+from fastapi.security import OAuth2PasswordRequestForm
 from authlib.integrations.starlette_client import OAuth
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -7,7 +8,7 @@ from datetime import timedelta
 from app.config import settings
 from app.database import get_db
 from app.repositories.user_repository import UserRepository
-from app.security import create_access_token
+from app.utils.security import create_access_token # security -> utils 로 변경된 경로 반영
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,6 +23,37 @@ oauth.register(
         'scope': 'openid email profile'
     }
 )
+
+@router.post("/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    """
+    Admin login endpoint. Authenticates against settings and DB, returns JWT token.
+    """
+    user_repo = UserRepository(db)
+    # 1. Check credentials against settings
+    if not (form_data.username == settings.ADMIN_USERNAME and form_data.password == settings.ADMIN_PASSWORD):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # 2. Check if user exists in DB and is a superuser
+    user = user_repo.get_by_email(email=form_data.username)
+    if not user or not user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or not an admin",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # 3. Create and return access token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.get('/google/login')
 async def login_via_google(request: Request):

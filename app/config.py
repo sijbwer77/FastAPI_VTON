@@ -23,12 +23,17 @@ class Settings(BaseSettings):
     CLOTH_RESOURCE_DIR: str = "resources/cloths"
     RESULT_RESOURCE_DIR: str = "resources/results"
 
-    # VTON (original, vertex_ai)
-    VTON_METHOD: str = "original"
+    # VTON
+    VTON_METHOD: str = "run_vton" # run_vton or vertex_ai
+
+    # Admin credentials
+    ADMIN_USERNAME: str = "cookie8744@hanyang.ac.kr"
+    ADMIN_PASSWORD: str = "admin"
 
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
+
 
 settings = Settings()
 

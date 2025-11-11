@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTON Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>VTON Admin Panel</h1>
+        <nav>
+            <button id="showUsersBtn">사용자 관리</button>
+            <button id="showPhotosBtn">사진 관리</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="usersSection" class="admin-section active">
+            <h2>사용자 관리</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Active</th>
+                            <th>Superuser</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- User data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="photosSection" class="admin-section">
+            <h2>사진 관리</h2>
+            <div class="category-selector">
+                <label for="photoCategory">카테고리:</label>
+                <select id="photoCategory">
+                    <option value="persons">사용자 사진</option>
+                    <option value="clothes">의류 사진</option>
+                    <option value="results">결과 사진</option>
+                </select>
+                <button id="loadPhotosBtn">사진 불러오기</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Filename</th>
+                            <th>User ID</th>
+                            <th>Uploaded At</th>
+                            <th>Preview</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="photosTableBody">
+                        <!-- Photo data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

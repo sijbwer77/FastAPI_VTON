@@ -14,7 +14,7 @@ class User(Base):
     profile_image = Column(String, nullable=True) # google 프로필 이미지 URL
     is_active = Column(Boolean, default = True)
     is_superuser = Column(Boolean, default = False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now())
 
     person_photos = relationship("PersonPhoto", back_populates="user")
     cloth_photos = relationship("ClothPhoto", back_populates="user")
@@ -27,7 +27,7 @@ class PersonPhoto(Base): # 사람 사진 저장
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     filename_original = Column(String, nullable=False)
     filename = Column(String, unique=True, nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=datetime.now())
 
     user = relationship("User", back_populates="person_photos")
     result_photos = relationship("ResultPhoto", back_populates="person_photo")
@@ -39,7 +39,7 @@ class ClothPhoto(Base): # 옷 사진 저장
     filename_original = Column(String, nullable=False)
     filename = Column(String, unique=True, nullable=False)
     fitting_type = Column(String, nullable=False, default='upper')
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, default=datetime.now())
 
     user = relationship("User", back_populates="cloth_photos")
     result_photos = relationship("ResultPhoto", back_populates="cloth_photo")
@@ -52,7 +52,7 @@ class ResultPhoto(Base): # 결과 저장
     person_photo_id = Column(Integer, ForeignKey("person_photos.id"), nullable=False)
     cloth_photo_id = Column(Integer, ForeignKey("cloth_photos.id"), nullable =False)
     filename = Column(String,unique=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now())
     
     user = relationship("User", back_populates="result_photos")
     person_photo = relationship("PersonPhoto", back_populates="result_photos")

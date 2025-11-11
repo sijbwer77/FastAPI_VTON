@@ -1,80 +1,88 @@
 import os
 import logging
-from typing import List, Optional
+from typing import List, Optional, Type, Dict
+from sqlalchemy.orm import Session
+from app.models import PersonPhoto, ClothPhoto, ResultPhoto, Base
 
-from app.database import SessionLocal
-from app.models import PersonPhoto, ClothPhoto, ResultPhoto
-
-# 카테고리 이름과 실제 디렉토리를 매핑합니다.
+# --- Constants ---
 CATEGORY_DIRS = {
     "clothes": "resources/cloths",
     "persons": "resources/persons",
     "results": "resources/results",
 }
 
-# 카테고리 이름과 ORM 모델을 매핑합니다.
-CATEGORY_MODELS = {
+CATEGORY_MODELS: Dict[str, Type[Base]] = {
     "clothes": ClothPhoto,
     "persons": PersonPhoto,
     "results": ResultPhoto,
 }
 
-def list_images(category: str) -> Optional[List[str]]:
-    """
-    지정된 카테고리에 대해 데이터베이스를 쿼리하여 이미지 파일 목록을 가져옵니다.
-    카테고리가 유효하지 않으면 None을 반환합니다.
-    """
-    model = CATEGORY_MODELS.get(category)
-    if not model:
-        logging.error(f"Invalid image category requested: {category}")
+# --- Repository Class ---
+class ImageRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_all_photos_by_category(self, category: str) -> Optional[List[Type[Base]]]:
+        """
+        관리자용: 지정된 카테고리의 모든 사진 레코드를 가져옵니다.
+        """
+        model = CATEGORY_MODELS.get(category)
+        if not model:
+            return None
+        return self.db.query(model).order_by(model.id.desc()).all()
+
+    def delete_photo_by_id(self, category: str, photo_id: int) -> Optional[Type[Base]]:
+        """
+        관리자용: ID로 특정 사진 레코드를 삭제하고, 삭제된 객체를 반환합니다.
+        """
+        model = CATEGORY_MODELS.get(category)
+        if not model:
+            return None
+        
+        photo_to_delete = self.db.query(model).filter(model.id == photo_id).first()
+        
+        if photo_to_delete:
+            # First, commit the deletion to the database
+            self.db.delete(photo_to_delete)
+            self.db.commit()
+            return photo_to_delete
+            
         return None
 
-    db = SessionLocal()
-    try:
-        # 데이터베이스에서 filename 목록을 조회합니다.
-        image_records = db.query(model.filename).all()
-        # SQLAlchemy의 결과는 튜플 리스트이므로, 각 튜플의 첫 번째 요소를 추출합니다.
-        image_files = [record[0] for record in image_records]
-        return image_files
-    except Exception as e:
-        logging.error(f"Error querying database for category {category}: {e}")
-        return []
-    finally:
-        db.close()
+    def get_all_photos_for_user(self, user_id: int) -> Dict[str, List[Type[Base]]]:
+        """
+        특정 사용자의 모든 사진 레코드를 카테고리별로 가져옵니다.
+        """
+        photos = {
+            "persons": self.db.query(PersonPhoto).filter(PersonPhoto.user_id == user_id).all(),
+            "clothes": self.db.query(ClothPhoto).filter(ClothPhoto.user_id == user_id).all(),
+            "results": self.db.query(ResultPhoto).filter(ResultPhoto.user_id == user_id).all(),
+        }
+        return photos
 
-def get_image_path(category: str, image_name: str) -> Optional[str]:
-    """
-    DB를 확인하여 카테고리와 이미지 이름이 유효한지 검증하고,
-    유효하다면 전체 파일 경로를 반환합니다.
-    """
-    target_dir = CATEGORY_DIRS.get(category)
-    model = CATEGORY_MODELS.get(category)
-    if not target_dir or not model:
-        return None
+    def get_image_path(self, category: str, image_name: str) -> Optional[str]:
+        """
+        DB를 확인하여 카테고리와 이미지 이름이 유효한지 검증하고,
+        유효하다면 전체 파일 경로를 반환합니다.
+        """
+        target_dir = CATEGORY_DIRS.get(category)
+        model = CATEGORY_MODELS.get(category)
+        if not target_dir or not model:
+            return None
 
-    # 경로 조작 공격 방지를 위한 보안 검사
-    if ".." in image_name or "/" in image_name or "\\" in image_name:
-        logging.warning(f"Invalid image name requested: {image_name}")
-        return None
+        # 경로 조작 공격 방지를 위한 보안 검사
+        if ".." in image_name or "/" in image_name or "\\" in image_name:
+            logging.warning(f"Invalid image name requested: {image_name}")
+            return None
 
-    db = SessionLocal()
-    try:
-        # 데이터베이스에 해당 파일 이름의 레코드가 있는지 확인합니다.
-        record_exists = db.query(model).filter(model.filename == image_name).first()
+        record_exists = self.db.query(model).filter(model.filename == image_name).first()
         if not record_exists:
             return None
-    except Exception as e:
-        logging.error(f"Error querying database for image {image_name} in category {category}: {e}")
-        return None
-    finally:
-        db.close()
 
-    # 레코드가 존재하면, 파일 시스템 경로를 조합하여 반환합니다.
-    image_path = os.path.join(target_dir, image_name)
+        image_path = os.path.join(target_dir, image_name)
 
-    # DB에 레코드는 있지만 실제 파일이 없을 경우를 대비한 추가 검사
-    if not os.path.isfile(image_path):
-        logging.warning(f"DB record exists for {image_path}, but the file is missing.")
-        return None
-    
-    return image_path
+        if not os.path.isfile(image_path):
+            logging.warning(f"DB record exists for {image_path}, but the file is missing.")
+            return None
+        
+        return image_path
