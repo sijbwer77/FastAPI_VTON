@@ -19,6 +19,20 @@ class ImageCategory(str, Enum):
     persons = "persons"
     results = "results"
 
+@router.get("/shop-clothes", response_model=List[schemas.Photo])
+async def get_shop_clothes_list(db: Session = Depends(get_db)):
+    """
+    상점(Shop)의 'clothes' 이미지 파일 목록을 반환합니다.
+    이 엔드포인트는 공개이며 인증이 필요하지 않습니다.
+    """
+    images = image_service.get_shop_cloth_list(db)
+    if not images:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No shop clothes found.",
+        )
+    return images
+
 @router.get("/my-clothes", response_model=List[schemas.Photo])
 async def get_my_clothes_list(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
     """

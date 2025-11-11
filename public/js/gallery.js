@@ -48,7 +48,7 @@ function initialContentCheck() {
 async function loadInitialClothes() {
     if (!itemGallery) return;
     try {
-        const response = await fetch('/images/clothes');
+        const response = await fetch('/images/shop-clothes');
         if (!response.ok) throw new Error('Failed to load clothes.');
         allClothes = await response.json();
 

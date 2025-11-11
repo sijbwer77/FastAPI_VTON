@@ -1,17 +1,24 @@
 from typing import List, Optional, Type
 from sqlalchemy.orm import Session
 
-from app.models import Base
+from app.models import Base, ClothPhoto
 from app.repositories.image_repository import ImageRepository
 from app.repositories.photo_repository import PhotoRepository
 
-def get_cloth_list_by_user_id(db: Session, user_id: int) -> Optional[List[Type[Base]]]:
+def get_shop_cloth_list(db: Session) -> List[ClothPhoto]:
+    """
+    상점(SHOP_USER_ID)의 'cloth' 이미지 객체 목록을 가져오는 서비스 함수입니다.
+    """
+    image_repo = ImageRepository(db)
+    return image_repo.get_shop_cloth_photos()
+
+def get_cloth_list_by_user_id(db: Session, user_id: int) -> List[ClothPhoto]:
     """
     특정 사용자의 'cloth' 이미지 객체 목록을 가져오는 서비스 함수입니다.
     """
     photo_repo = PhotoRepository(db)
-    photos = photo_repo.get_all_cloth_photos_by_user_id(user_id)
-    return photos
+    user_cloth_photos = photo_repo.get_all_cloth_photos_by_user_id(user_id)
+    return user_cloth_photos
 
 def get_image_list_by_user_id(db: Session, user_id: int) -> Optional[List[Type[Base]]]:
     """

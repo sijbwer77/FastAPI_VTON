@@ -60,6 +60,14 @@ class ImageRepository:
         }
         return photos
 
+    def get_shop_cloth_photos(self) -> List[ClothPhoto]:
+        """
+        상점(SHOP_USER_ID)에 해당하는 모든 ClothPhoto 레코드를 가져옵니다.
+        """
+        from app.config import settings # 순환 참조 방지를 위해 함수 내에서 임포트
+        shop_user_id = settings.SHOP_USER_ID
+        return self.db.query(ClothPhoto).filter(ClothPhoto.user_id == shop_user_id).all()
+
     def get_image_path(self, category: str, image_name: str) -> Optional[str]:
         """
         DB를 확인하여 카테고리와 이미지 이름이 유효한지 검증하고,

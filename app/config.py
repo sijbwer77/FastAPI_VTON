@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "cookie8744@hanyang.ac.kr"
     ADMIN_PASSWORD: str = "admin"
 
+    # Shop User ID - clothes from this user will be visible to all
+    SHOP_USER_ID: int = 1 # Default shop user ID, can be overridden by environment variable
+
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
