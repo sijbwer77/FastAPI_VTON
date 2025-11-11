@@ -3,10 +3,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi.responses import FileResponse
 import os
-from app import models
 from app.database import get_db
+from app.services.result_service import ResultService
+from app.repositories.result_repository import ResultRepository
 
 router = APIRouter(prefix="/results", tags=["results"])
+
+# Dependency for ResultService
+def get_result_service(db: Session = Depends(get_db)) -> ResultService:
+    result_repo = ResultRepository(db)
+    return ResultService(result_repo)
 
 # 개별 이미지
 @router.get("/image/{filename}")
@@ -20,13 +26,8 @@ def get_result_image(filename: str):
 
 # 모든 결과 리스트 조회
 @router.get("/{user_id}")
-def list_results(user_id: int, db: Session = Depends(get_db)):
-    results = (
-        db.query(models.ResultPhoto)
-        .filter(models.ResultPhoto.user_id == user_id)
-        .order_by(models.ResultPhoto.created_at.desc())
-        .all()
-    )
+def list_results(user_id: int, result_service: ResultService = Depends(get_result_service)):
+    results = result_service.get_user_results(user_id)
 
     return [
         {
