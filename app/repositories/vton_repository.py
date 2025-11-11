@@ -40,7 +40,7 @@ def run_vton_with_vertex_ai(
         result_path = f"resources/results/{uuid.uuid4()}.png"
 
         prompt = [
-            f"Please edit the person image to wear the cloth image. The cloth is a {cloth_type} type. generate only image.",
+            f"Please edit the person image to wear the cloth image. The cloth is a {cloth_type} type. # generate only image.",
             person_image_part,
             cloth_image_part,
         ]

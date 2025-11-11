@@ -2,6 +2,7 @@
 const personImageDisplay = document.getElementById('person-image-display');
 const personPhotoSelector = document.getElementById('person-photo-selector');
 const clothImageDisplay = document.getElementById('cloth-image-display');
+const clothPhotoSelector = document.getElementById('cloth-photo-selector'); // New DOM element
 const resultImageDisplay = document.getElementById('result-image-display');
 const generateBtn = document.getElementById('generateBtn');
 const viewToggle = document.getElementById('view-toggle');
@@ -73,29 +74,96 @@ async function loadPersonPhotos(authToken) {
                 personPhotoSelector.appendChild(img);
             });
         } else {
-            // No photos: Show a message in the main display and an upload button in the selector.
+            // If no photos, ensure the main display is clear or shows a generic placeholder
             personImageDisplay.innerHTML = `
                 <div class="person-image-placeholder">
-                    <p>Please upload a photo using the '+' button below.</p>
+                    <p>Upload a person image</p>
                 </div>
             `;
-            const uploadContainer = document.createElement('div');
-            uploadContainer.className = 'thumbnail-upload';
-            uploadContainer.innerHTML = `
-                <label for="person-photo-upload-selector" class="upload-label">+</label>
-                <input type="file" id="person-photo-upload-selector" accept="image/*" style="display: none;">
-            `;
-            personPhotoSelector.appendChild(uploadContainer);
+        }
 
-            const fileInputSelector = document.getElementById('person-photo-upload-selector');
-            if (fileInputSelector) {
-                fileInputSelector.addEventListener('change', (event) => handlePersonPhotoUpload(event, authToken));
-            }
+        // Always add the upload button to the selector
+        const uploadContainer = document.createElement('div');
+        uploadContainer.className = 'thumbnail-upload';
+        uploadContainer.innerHTML = `
+            <label for="person-photo-upload-selector" class="upload-label">+</label>
+            <input type="file" id="person-photo-upload-selector" accept="image/*" style="display: none;">
+        `;
+        personPhotoSelector.appendChild(uploadContainer);
+
+        const fileInputSelector = document.getElementById('person-photo-upload-selector');
+        if (fileInputSelector) {
+            fileInputSelector.addEventListener('change', (event) => handlePersonPhotoUpload(event, authToken));
         }
         updateGenerateButtonState();
     } catch (error) {
         console.error("Error loading person photos:", error);
         personPhotoSelector.innerHTML = '<small>Failed to load photos.</small>';
+    }
+}
+
+async function loadClothPhotos(authToken) {
+    if (!authToken) {
+        if (clothPhotoSelector) clothPhotoSelector.innerHTML = '<small>Please log in to use.</small>';
+        return;
+    }
+    if (!clothPhotoSelector || !clothImageDisplay) return;
+
+    try {
+        const response = await fetch('/images/my-clothes', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) throw new Error('Failed to load cloth photos.');
+        const photos = await response.json();
+
+        clothPhotoSelector.innerHTML = '';
+        clothImageDisplay.innerHTML = '';
+        selectedCloth = null; // Reset selection
+
+        if (photos.length > 0) {
+            const firstPhoto = photos[0];
+            selectedCloth = { id: firstPhoto.id, filename: firstPhoto.filename };
+            clothImageDisplay.innerHTML = `<img src="/images/clothes/${firstPhoto.filename}" alt="${firstPhoto.filename}">`;
+            
+            photos.forEach((photo, index) => {
+                const img = document.createElement('img');
+                img.src = `/images/clothes/${photo.filename}`;
+                img.alt = photo.filename;
+                img.className = 'thumbnail';
+                img.dataset.id = photo.id;
+                img.dataset.filename = photo.filename;
+
+                if (index === 0) {
+                    img.classList.add('selected');
+                }
+                clothPhotoSelector.appendChild(img);
+            });
+        } else {
+            // If no photos, ensure the main display is clear or shows a generic placeholder
+            clothImageDisplay.innerHTML = `
+                <div class="cloth-image-placeholder">
+                    <p>Upload a cloth image</p>
+                </div>
+            `;
+        }
+
+        // Always add the upload button to the selector
+        const uploadContainer = document.createElement('div');
+        uploadContainer.className = 'thumbnail-upload';
+        uploadContainer.innerHTML = `
+            <label for="cloth-photo-upload-selector" class="upload-label">+</label>
+            <input type="file" id="cloth-photo-upload-selector" accept="image/*" style="display: none;">
+        `;
+        clothPhotoSelector.appendChild(uploadContainer);
+
+        const fileInputSelector = document.getElementById('cloth-photo-upload-selector');
+        if (fileInputSelector) {
+            fileInputSelector.addEventListener('change', (event) => handleClothPhotoUpload(event, authToken));
+        }
+        updateGenerateButtonState();
+    } catch (error) {
+        console.error("Error loading cloth photos:", error);
+        clothPhotoSelector.innerHTML = '<small>Failed to load clothes.</small>';
     }
 }
 
@@ -129,17 +197,48 @@ async function handlePersonPhotoUpload(event, authToken) {
     }
 }
 
+async function handleClothPhotoUpload(event, authToken) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/upload/cloth', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'File upload failed.');
+        }
+
+        // Reload photos to show the newly uploaded one
+        await loadClothPhotos(authToken);
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert(`Error uploading file: ${error.message}`);
+    }
+}
+
 function setupTryOnPanel(getAuthToken, getCurrentUser) {
     // This function is called after authentication is handled.
     const authToken = getAuthToken();
     if (authToken) {
         loadPersonPhotos(authToken);
+        loadClothPhotos(authToken); // Load user's clothes
     }
 
     if (personPhotoSelector) {
         personPhotoSelector.addEventListener('click', (e) => {
             if (e.target && e.target.classList.contains('thumbnail')) {
-                document.querySelectorAll('.thumbnail-container .thumbnail').forEach(thumb => {
+                document.querySelectorAll('#person-photo-selector .thumbnail').forEach(thumb => {
                     thumb.classList.remove('selected');
                 });
                 e.target.classList.add('selected');
@@ -149,6 +248,25 @@ function setupTryOnPanel(getAuthToken, getCurrentUser) {
                 selectedPerson = { id, filename };
                 if (personImageDisplay) {
                     personImageDisplay.innerHTML = `<img src="/images/persons/${filename}" alt="${filename}">`;
+                }
+                updateGenerateButtonState();
+            }
+        });
+    }
+
+    if (clothPhotoSelector) { // New event listener for cloth selector
+        clothPhotoSelector.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('thumbnail')) {
+                document.querySelectorAll('#cloth-photo-selector .thumbnail').forEach(thumb => {
+                    thumb.classList.remove('selected');
+                });
+                e.target.classList.add('selected');
+
+                const id = e.target.dataset.id;
+                const filename = e.target.dataset.filename;
+                selectedCloth = { id, filename };
+                if (clothImageDisplay) {
+                    clothImageDisplay.innerHTML = `<img src="/images/clothes/${filename}" alt="${filename}">`;
                 }
                 updateGenerateButtonState();
             }
