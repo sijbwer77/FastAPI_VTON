@@ -36,7 +36,7 @@ pip install -r requirements.txt
 모든 종속성이 설치되면, 다음 명령어를 사용하여 FastAPI 애플리케이션을 실행할 수 있습니다.
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --reload
 ```
 
 애플리케이션이 성공적으로 실행되면, `http://0.0.0.0:8000` 또는 `http://localhost:8000`에서 접근할 수 있습니다.
