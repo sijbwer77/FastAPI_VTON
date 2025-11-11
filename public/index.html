@@ -38,18 +38,35 @@
         <!-- 3. Virtual try-on bar -->
         <aside class="try-on-panel" id="try-on-panel">
             <h3>Virtual Try-On</h3>
-            <div class="image-container">
-                <div id="person-image-display" class="image-placeholder"></div>
-                <div id="person-photo-selector" class="thumbnail-container"></div>
+            <div id="try-on-container">
+                <div class="image-container">
+                    <div id="person-image-display" class="image-placeholder"></div>
+                    <div id="person-photo-selector" class="thumbnail-container"></div>
+                </div>
+                <div class="try-on-section">
+                    <div id="cloth-image-display" class="image-placeholder"></div>
+                </div>
+                <div class="try-on-section hidden" id="result-section">
+                    <h4>Try-On Result</h4>
+                    <div id="result-image-display" class="image-placeholder"></div>
+                </div>
             </div>
-            <div class="try-on-section">
-                <div id="cloth-image-display" class="image-placeholder"></div>
+
+            <div id="results-container" class="hidden">
+                <!-- Session results will be populated here by JS -->
             </div>
-            <div class="try-on-section hidden" id="result-section">
-                <h4>Try-On Result</h4>
-                <div id="result-image-display" class="image-placeholder"></div>
+
+            <div class="try-on-controls">
+                <div class="toggle-switch-container">
+                    <span>Try-on</span>
+                    <label class="switch">
+                        <input type="checkbox" id="view-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Results</span>
+                </div>
+                <button id="generateBtn" class="generate-btn" disabled>Generate Try-On</button>
             </div>
-            <button id="generateBtn" class="generate-btn" disabled>Generate Try-On</button>
         </aside>
     </div>
 

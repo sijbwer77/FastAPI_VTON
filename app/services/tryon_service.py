@@ -23,7 +23,7 @@ class TryonService:
         if not person_photo:
             raise PhotoNotFoundError("선택한 사람 사진을 찾을 수 없습니다.")
 
-        cloth_photo = self.photo_repo.get_cloth_photo_by_id(cloth_photo_id, user_id)
+        cloth_photo = self.photo_repo.get_cloth_photo_by_id(cloth_photo_id)
         if not cloth_photo:
             raise PhotoNotFoundError("선택한 옷 사진을 찾을 수 없습니다.")
 
@@ -42,19 +42,27 @@ class TryonService:
 
         # 4) VTON 실행
         try:
+            actual_result_path = None
             if settings.VTON_METHOD == "vertex_ai":
-                result_path = vton_service.run_vton(
+                actual_result_path = vton_service.run_vton(
                     person_path=person_path,
                     cloth_path=cloth_path,
                     cloth_type=cloth_photo.fitting_type,
                 )
             else:
-                run_vton(
+                actual_result_path = run_vton(
                     person_path=person_path,
                     cloth_path=cloth_path,
                     result_path=result_path,
                     cloth_type=cloth_photo.fitting_type,
                 )
+            
+            if actual_result_path is None or not os.path.exists(actual_result_path):
+                raise VtonProcessingError("합성 결과 파일이 생성되지 않았습니다.")
+            
+            # 실제 생성된 파일명으로 DB에 저장
+            final_filename = os.path.basename(actual_result_path)
+
         except Exception as e:
             raise VtonProcessingError(f"합성 실패: {e}")
 
@@ -63,6 +71,6 @@ class TryonService:
             user_id=user_id,
             person_photo_id=person_photo_id,
             cloth_photo_id=cloth_photo_id,
-            filename=result_filename,
+            filename=final_filename,
         )
         return new_result

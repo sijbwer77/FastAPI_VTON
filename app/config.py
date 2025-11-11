@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     RESULT_RESOURCE_DIR: str = "resources/results"
 
     # VTON
-    VTON_METHOD: str = "run_vton" # run_vton or vertex_ai
+    VTON_METHOD: str = "vertex_ai" # run_vton or vertex_ai
 
     # Admin credentials
     ADMIN_USERNAME: str = "cookie8744@hanyang.ac.kr"
