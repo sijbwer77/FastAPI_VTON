@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     CLOTH_RESOURCE_DIR: str = "resources/cloths"
     RESULT_RESOURCE_DIR: str = "resources/results"
 
+    # VTON (original, vertex_ai)
+    VTON_METHOD: str = "original"
+
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'

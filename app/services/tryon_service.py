@@ -3,6 +3,7 @@ from app.config import settings
 from app.repositories.photo_repository import PhotoRepository
 from app.repositories.result_repository import ResultRepository
 from vton.run_vton import run_vton
+from app.services import vton_service
 from app import models # For type hinting the return value
 
 # Custom Exceptions
@@ -41,12 +42,19 @@ class TryonService:
 
         # 4) VTON 실행
         try:
-            run_vton(
-                person_path=person_path,
-                cloth_path=cloth_path,
-                result_path=result_path,
-                cloth_type=cloth_photo.fitting_type,
-            )
+            if settings.VTON_METHOD == "vertex_ai":
+                result_path = vton_service.run_vton(
+                    person_path=person_path,
+                    cloth_path=cloth_path,
+                    cloth_type=cloth_photo.fitting_type,
+                )
+            else:
+                run_vton(
+                    person_path=person_path,
+                    cloth_path=cloth_path,
+                    result_path=result_path,
+                    cloth_type=cloth_photo.fitting_type,
+                )
         except Exception as e:
             raise VtonProcessingError(f"합성 실패: {e}")
 
