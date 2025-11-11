@@ -33,12 +33,13 @@ app.add_middleware(
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY, https_only=False)
 
 # Register API routers
-from app.routes import upload, tryon, result, auth, users
+from app.routes import upload, tryon, result, auth, users, images
 app.include_router(upload.router)
 app.include_router(tryon.router)
 app.include_router(result.router)
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(images.router)
 
 # Mount static files
 # This must be mounted *after* the API routers
