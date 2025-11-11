@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services import image_service
+from app import schemas
 
 router = APIRouter(
     prefix="/images",
@@ -16,7 +17,7 @@ class ImageCategory(str, Enum):
     persons = "persons"
     results = "results"
 
-@router.get("/{category}", response_model=List[str])
+@router.get("/{category}", response_model=List[schemas.Photo])
 async def get_images_list(category: ImageCategory, db: Session = Depends(get_db)):
     """
     지정된 카테고리의 이미지 파일 목록을 반환합니다.

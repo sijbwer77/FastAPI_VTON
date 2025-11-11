@@ -1,20 +1,15 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 from sqlalchemy.orm import Session
 from app.repositories.image_repository import ImageRepository
+from app.models import Base
 
-def get_image_list_by_category(db: Session, category: str) -> Optional[List[str]]:
+def get_image_list_by_category(db: Session, category: str) -> Optional[List[Type[Base]]]:
     """
-    카테고리별 이미지 목록을 가져오는 서비스 함수입니다.
-    (Note: This function might need to be adapted if the frontend needs more than just filenames)
+    카테고리별 이미지 객체 목록을 가져오는 서비스 함수입니다.
     """
-    # This function is not directly available in the new repo, but we can simulate it
-    # For now, let's assume the public API still just needs filenames.
-    # A better approach might be to return full objects and adapt the route's response_model.
     image_repo = ImageRepository(db)
     photos = image_repo.get_all_photos_by_category(category)
-    if photos is None:
-        return None
-    return [photo.filename for photo in photos]
+    return photos
 
 
 def get_image_file_path(db: Session, category: str, image_name: str) -> Optional[str]:

@@ -3,28 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastAPI VTON - Google Login</title>
+    <title>VTON-SHOP</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>FastAPI VTON</h1>
-        <p>백엔드 테스트용 페이지입니다.</p>
-        
-        <div id="auth-section">
-            <a href="/auth/google/login" class="google-btn">
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
-                <span>Google로 로그인</span>
-            </a>
-        </div>
 
-        <div id="user-info" class="hidden">
-            <h2>사용자 정보</h2>
-            <pre id="user-details"></pre>
-            <button id="logout-btn">로그아웃</button>
-        </div>
+    <!-- 1. Navbar -->
+    <header class="site-header">
+        <nav class="navbar">
+            <div class="navbar-logo">
+                <a href="/">VTON-SHOP</a>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Men</a></li>
+                <li><a href="#">Women</a></li>
+                <li><a href="#">Sale</a></li>
+            </ul>
+            <div class="navbar-actions">
+                <button id="loginBtn">로그인</button>
+                <!-- Logged-in user profile will be handled by JS -->
+                <div id="userProfile" class="hidden"></div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <!-- 2. Shop lists (Item Gallery) -->
+        <main class="item-gallery" id="item-gallery">
+            <!-- Item cards will be loaded here by script.js -->
+            <div id="sentinel"></div> <!-- Sentinel for infinite scroll -->
+        </main>
+
+        <!-- 3. Virtual try-on bar -->
+        <aside class="try-on-panel" id="try-on-panel">
+            <h3>Virtual Try-On</h3>
+            <div class="image-container">
+                <div id="person-image-display" class="image-placeholder"></div>
+                <div id="person-photo-selector" class="thumbnail-container"></div>
+            </div>
+            <div class="try-on-section">
+                <div id="cloth-image-display" class="image-placeholder"></div>
+            </div>
+            <div class="try-on-section hidden" id="result-section">
+                <h4>Try-On Result</h4>
+                <div id="result-image-display" class="image-placeholder"></div>
+            </div>
+            <button id="generateBtn" class="generate-btn" disabled>Generate Try-On</button>
+        </aside>
     </div>
 
-    <script src="script.js"></script>
+    <script src="js/main.js" type="module"></script>
 </body>
 </html>

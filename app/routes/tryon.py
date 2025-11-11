@@ -20,7 +20,7 @@ class TryonRequest(BaseModel):
     person_photo_id: int
     cloth_photo_id: int
 
-@router.post("/")
+@router.post("")
 def tryon(req: TryonRequest, tryon_service: TryonService = Depends(get_tryon_service)):
     try:
         result = tryon_service.create_tryon_result(
