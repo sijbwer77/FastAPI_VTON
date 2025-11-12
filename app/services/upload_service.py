@@ -4,7 +4,7 @@ from PIL import Image
 from fastapi import UploadFile, HTTPException
 from app.config import settings
 from app.repositories.upload_repository import UploadRepository
-from app import models # For type hinting the return value
+from app import models, schemas # For type hinting the return value
 
 # Custom Exceptions
 class InvalidImageFileError(Exception):
@@ -17,7 +17,7 @@ class UploadService:
     def __init__(self, upload_repo: UploadRepository):
         self.upload_repo = upload_repo
 
-    async def upload_person_photo(self, file: UploadFile, user_id: int = 1) -> models.PersonPhoto: # TODO: user_id from auth
+    async def upload_person_photo(self, file: UploadFile, user_id: int = 1) -> schemas.Photo: # TODO: user_id from auth
         if not file.filename.lower().endswith(('.jpg','.jpeg','.png')):
             raise InvalidImageFileError('jpg, jpeg, png 만 가능합니다')
 
@@ -43,7 +43,7 @@ class UploadService:
         )
         return new_photo
 
-    async def upload_cloth_photo(self, file: UploadFile, user_id: int = 1, fitting_type: str = "upper") -> models.ClothPhoto: # TODO: user_id from auth, fitting_type logic
+    async def upload_cloth_photo(self, file: UploadFile, user_id: int = 1, fitting_type: str = "upper") -> schemas.Photo: # TODO: user_id from auth, fitting_type logic
         if not file.filename.lower().endswith((".jpg", ".jpeg", ".png")):
             raise InvalidImageFileError("jpg, jpeg, png만 가능합니다")
 

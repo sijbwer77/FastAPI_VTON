@@ -4,7 +4,7 @@ from app.repositories.photo_repository import PhotoRepository
 from app.repositories.result_repository import ResultRepository
 from vton.run_vton import run_vton
 from app.services import vton_service
-from app import models # For type hinting the return value
+from app import models, schemas # For type hinting the return value
 
 # Custom Exceptions
 class PhotoNotFoundError(Exception):
@@ -18,7 +18,7 @@ class TryonService:
         self.photo_repo = photo_repo
         self.result_repo = result_repo
 
-    def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> models.ResultPhoto:
+    def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> schemas.Photo:
         person_photo = self.photo_repo.get_person_photo_by_id(person_photo_id, user_id)
         if not person_photo:
             raise PhotoNotFoundError("선택한 사람 사진을 찾을 수 없습니다.")
