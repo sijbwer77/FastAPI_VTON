@@ -2,7 +2,6 @@ import os, uuid
 from app.config import settings
 from app.repositories.photo_repository import PhotoRepository
 from app.repositories.result_repository import ResultRepository
-from vton.run_vton import run_vton
 from app.services import vton_service
 from app import models, schemas # For type hinting the return value
 
@@ -50,12 +49,7 @@ class TryonService:
                     cloth_type=cloth_photo.fitting_type,
                 )
             else:
-                actual_result_path = run_vton(
-                    person_path=person_path,
-                    cloth_path=cloth_path,
-                    result_path=result_path,
-                    cloth_type=cloth_photo.fitting_type,
-                )
+                raise Exception("vertex_ai 환경 변수 설정이 필요합니다'");
             
             if actual_result_path is None or not os.path.exists(actual_result_path):
                 raise VtonProcessingError("합성 결과 파일이 생성되지 않았습니다.")
