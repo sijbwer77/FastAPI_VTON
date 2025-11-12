@@ -46,7 +46,7 @@ def run_vton_with_vertex_ai(
         ]
 
         response = model.generate_content(prompt)
-        logging.info(f"Vertex AI Response: {response}") # Added logging
+        # logging.info(f"Vertex AI Response: {response}") # Added logging
 
         # Assuming the response contains an image in the first part of the first candidate
         if response.candidates and response.candidates[0].content.parts:
