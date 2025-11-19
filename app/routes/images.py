@@ -2,10 +2,8 @@ from typing import List
 from enum import Enum
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
 
-from app.database import get_db
-from app.services import image_service
+from app.services.image_service import ImageService, get_image_service
 from app.utils.security import get_current_user
 from app import models, schemas
 
@@ -20,12 +18,11 @@ class ImageCategory(str, Enum):
     results = "results"
 
 @router.get("/shop-clothes", response_model=List[schemas.Photo])
-async def get_shop_clothes_list(db: Session = Depends(get_db)):
+async def get_shop_clothes_list(image_service: ImageService = Depends(get_image_service)):
     """
     상점(Shop)의 'clothes' 이미지 파일 목록을 반환합니다.
-    이 엔드포인트는 공개이며 인증이 필요하지 않습니다.
     """
-    images = image_service.get_shop_cloth_list(db)
+    images = image_service.get_shop_cloth_list()
     if not images:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -34,11 +31,14 @@ async def get_shop_clothes_list(db: Session = Depends(get_db)):
     return images
 
 @router.get("/my-clothes", response_model=List[schemas.Photo])
-async def get_my_clothes_list(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def get_my_clothes_list(
+    current_user: models.User = Depends(get_current_user),
+    image_service: ImageService = Depends(get_image_service)
+):
     """
     현재 로그인된 사용자의 'clothes' 이미지 파일 목록을 반환합니다.
     """
-    images = image_service.get_cloth_list_by_user_id(db, current_user.id)
+    images = image_service.get_cloth_list_by_user_id(current_user.id)
     if images is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -47,11 +47,14 @@ async def get_my_clothes_list(db: Session = Depends(get_db), current_user: model
     return images
 
 @router.get("/persons", response_model=List[schemas.Photo])
-async def get_person_images_list(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+async def get_person_images_list(
+    current_user: models.User = Depends(get_current_user),
+    image_service: ImageService = Depends(get_image_service)
+):
     """
     현재 로그인된 사용자의 'persons' 이미지 파일 목록을 반환합니다.
     """
-    images = image_service.get_image_list_by_user_id(db, current_user.id)
+    images = image_service.get_image_list_by_user_id(current_user.id)
     if images is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -60,10 +63,13 @@ async def get_person_images_list(db: Session = Depends(get_db), current_user: mo
     return images
 
 @router.get("/{category}", response_model=List[schemas.Photo])
-async def get_public_images_list(category: ImageCategory, db: Session = Depends(get_db)):
+async def get_public_images_list(
+    category: ImageCategory,
+    image_service: ImageService = Depends(get_image_service)
+):
     """
+
     'clothes' 또는 'results' 카테고리의 이미지 파일 목록을 반환합니다.
-    'persons'는 이 엔드포인트에서 제외됩니다.
     """
     if category == ImageCategory.persons:
         raise HTTPException(
@@ -71,7 +77,7 @@ async def get_public_images_list(category: ImageCategory, db: Session = Depends(
             detail="Access to person images requires authentication. Please use the /images/persons endpoint.",
         )
     
-    images = image_service.get_image_list_by_category(db, category.value)
+    images = image_service.get_image_list_by_category(category.value)
     if images is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -80,11 +86,15 @@ async def get_public_images_list(category: ImageCategory, db: Session = Depends(
     return images
 
 @router.get("/{category}/{image_name}")
-async def get_image(category: ImageCategory, image_name: str, db: Session = Depends(get_db)):
+async def get_image(
+    category: ImageCategory,
+    image_name: str,
+    image_service: ImageService = Depends(get_image_service)
+):
     """
     지정된 카테고리에서 특정 이름의 이미지 파일을 반환합니다.
     """
-    image_path = image_service.get_image_file_path(db, category.value, image_name)
+    image_path = image_service.get_image_file_path(category.value, image_name)
 
     if image_path is None:
         raise HTTPException(
