@@ -4,6 +4,8 @@ from app.config import settings # .env 파일에서 값을 읽어온 settings �
 
 #아래 주소를 .env 파일 DATABASE_URL에 적어주세요
 #DATABASE_URL="postgresql://postgres.lbaqzmqmlbythlozegee:1234@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+#SUPABASE_URL ='https://lbaqzmqmlbythlozegee.supabase.co'
+#SUPABASE_KEY ="sb_publishable_Xa4F8p44GYRWvcRZussBhQ_xTGlDM-K"
 
 # 1. settings 객체에서 DATABASE_URL을 한 번만 읽어옵니다.
 engine_args = {}

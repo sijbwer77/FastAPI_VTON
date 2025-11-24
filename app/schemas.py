@@ -35,8 +35,10 @@ class User(UserBase):
 # Generic schema for returning any photo type
 class Photo(BaseModel):
     id: int
-    filename: str
-    user_id: int
+    image_url: str
+    fitting_type: Optional[str] = None
+    #filename: str
+    #user_id: int
     uploaded_at: Optional[datetime] = None
     created_at: Optional[datetime] = None
 

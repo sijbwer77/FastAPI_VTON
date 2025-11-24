@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     # Shop User ID - clothes from this user will be visible to all
     SHOP_USER_ID: int = 1 # Default shop user ID, can be overridden by environment variable
 
+    # Supabase(DB)
+    SUPABASE_URL:str
+    SUPABASE_KEY:str 
+
+    GOOGLE_CLOUD_PROJECT: str
+    GOOGLE_APPLICATION_CREDENTIALS: str
+
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'

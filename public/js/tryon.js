@@ -31,8 +31,8 @@ function displaySessionResults() {
 
     sessionResults.forEach(filename => {
         const img = document.createElement('img');
-        img.src = `/images/results/${filename}`;
-        img.alt = `Result image ${filename}`;
+        img.src = url; 
+        img.alt = `Result image`;
         resultsContainer.appendChild(img);
     });
 }
@@ -57,16 +57,17 @@ async function loadPersonPhotos(authToken) {
 
         if (photos.length > 0) {
             const firstPhoto = photos[0];
-            selectedPerson = { id: firstPhoto.id, filename: firstPhoto.filename };
-            personImageDisplay.innerHTML = `<img src="/images/persons/${firstPhoto.filename}" alt="${firstPhoto.filename}">`;
+            const firstUrl = firstPhoto.image_url;
+            selectedPerson = { id: firstPhoto.id, imageUrl: firstPhoto.image_url };
+            personImageDisplay.innerHTML = `<img src="${firstPhoto.image_url}" alt="${firstPhoto.filename}">`;
             
             photos.forEach((photo, index) => {
                 const img = document.createElement('img');
-                img.src = `/images/persons/${photo.filename}`;
+                img.src = photo.image_url;;
                 img.alt = photo.filename;
                 img.className = 'thumbnail';
                 img.dataset.id = photo.id;
-                img.dataset.filename = photo.filename;
+                img.dataset.imageUrl = photo.image_url;
 
                 if (index === 0) {
                     img.classList.add('selected');
@@ -100,6 +101,22 @@ async function loadPersonPhotos(authToken) {
         console.error("Error loading person photos:", error);
         personPhotoSelector.innerHTML = '<small>Failed to load photos.</small>';
     }
+    finally {
+        if (!document.getElementById('person-photo-upload-selector')) {
+            const uploadContainer = document.createElement('div');
+            uploadContainer.className = 'thumbnail-upload';
+            uploadContainer.innerHTML = `
+                <label for="person-photo-upload-selector" class="upload-label">+</label>
+                <input type="file" id="person-photo-upload-selector" accept="image/*" style="display: none;">
+            `;
+            personPhotoSelector.appendChild(uploadContainer);
+
+            const fileInputSelector = document.getElementById('person-photo-upload-selector');
+            if (fileInputSelector) {
+                fileInputSelector.addEventListener('change', (event) => handlePersonPhotoUpload(event, authToken));
+            }
+        }
+    }
 }
 
 async function loadClothPhotos(authToken) {
@@ -122,16 +139,16 @@ async function loadClothPhotos(authToken) {
 
         if (photos.length > 0) {
             const firstPhoto = photos[0];
-            selectedCloth = { id: firstPhoto.id, filename: firstPhoto.filename };
-            clothImageDisplay.innerHTML = `<img src="/images/clothes/${firstPhoto.filename}" alt="${firstPhoto.filename}">`;
+            selectedCloth = { id: firstPhoto.id, imageUrl: firstPhoto.image_url };
+            clothImageDisplay.innerHTML = `<img src="${firstPhoto.image_url}" alt="default cloth">`;
             
             photos.forEach((photo, index) => {
                 const img = document.createElement('img');
-                img.src = `/images/clothes/${photo.filename}`;
+                img.src = photo.image_url;
                 img.alt = photo.filename;
                 img.className = 'thumbnail';
                 img.dataset.id = photo.id;
-                img.dataset.filename = photo.filename;
+                img.dataset.imageUrl = photo.image_url;
 
                 if (index === 0) {
                     img.classList.add('selected');
@@ -164,6 +181,22 @@ async function loadClothPhotos(authToken) {
     } catch (error) {
         console.error("Error loading cloth photos:", error);
         clothPhotoSelector.innerHTML = '<small>Failed to load clothes.</small>';
+    }
+    finally {
+        if (!document.getElementById('cloth-photo-upload-selector')) {
+            const uploadContainer = document.createElement('div');
+            uploadContainer.className = 'thumbnail-upload';
+            uploadContainer.innerHTML = `
+                <label for="cloth-photo-upload-selector" class="upload-label">+</label>
+                <input type="file" id="cloth-photo-upload-selector" accept="image/*" style="display: none;">
+            `;
+            clothPhotoSelector.appendChild(uploadContainer);
+
+            const fileInputSelector = document.getElementById('cloth-photo-upload-selector');
+            if (fileInputSelector) {
+                fileInputSelector.addEventListener('change', (event) => handleClothPhotoUpload(event, authToken));
+            }
+        }
     }
 }
 
@@ -263,10 +296,10 @@ function setupTryOnPanel(getAuthToken, getCurrentUser) {
                 e.target.classList.add('selected');
 
                 const id = e.target.dataset.id;
-                const filename = e.target.dataset.filename;
-                selectedCloth = { id, filename };
+               const imageUrl = e.target.dataset.imageUrl;
+                selectedCloth = { id, imageUrl };
                 if (clothImageDisplay) {
-                    clothImageDisplay.innerHTML = `<img src="/images/clothes/${filename}" alt="${filename}">`;
+                    clothImageDisplay.innerHTML = `<img src="${imageUrl}" alt="selected cloth">`;;
                 }
                 updateGenerateButtonState();
             }
@@ -307,10 +340,10 @@ function setupTryOnPanel(getAuthToken, getCurrentUser) {
                 }
 
                 const result = await response.json();
-                if (resultImageDisplay) resultImageDisplay.innerHTML = `<img src="/images/results/${result.result_filename}" alt="Try-on result">`;
+                if (resultImageDisplay) resultImageDisplay.innerHTML = `<img src="${result.image_url}" alt="Try-on result">`;
                 
                 // Add to session results
-                sessionResults.push(result.result_filename);
+                sessionResults.push(result.image_url);
 
             } catch (error) {
                 console.error("Error generating try-on:", error);
@@ -338,7 +371,7 @@ function setupTryOnPanel(getAuthToken, getCurrentUser) {
 function handleClothSelection(cloth) {
     selectedCloth = cloth;
     if (clothImageDisplay) {
-        clothImageDisplay.innerHTML = `<img src="/images/clothes/${cloth.filename}" alt="${cloth.filename}">`;
+       clothImageDisplay.innerHTML = `<img src="${cloth.imageUrl}" alt="selected cloth">`;
     }
     updateGenerateButtonState();
 }

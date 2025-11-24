@@ -11,9 +11,18 @@ function appendClothes() {
     allClothes.forEach(cloth => {
         const card = document.createElement('div');
         card.className = 'item-card';
+        
+        const imageUrl = cloth.image_url;
+        
         card.innerHTML = `
             <div class="item-card-image-wrapper">
-                <img src="/images/clothes/${cloth.filename}" alt="Cloth item" class="item-card-image item-clickable" data-id="${cloth.id}" data-filename="${cloth.filename}">
+                <img 
+                    src="${imageUrl}" 
+                    alt="Cloth item" 
+                    class="item-card-image item-clickable" 
+                    data-id="${cloth.id}" 
+                    data-image-url="${imageUrl}"
+                >
             </div>
             <div class="item-card-content">
                 <h5>Stylish Cloth #${cloth.id}</h5>
@@ -79,9 +88,11 @@ function setupGallery(onClothSelect) {
         itemGallery.addEventListener('click', (e) => {
             if (e.target && e.target.classList.contains('item-clickable')) {
                 const id = e.target.dataset.id;
-                const filename = e.target.dataset.filename;
+
+                const imageUrl = e.target.dataset.imageUrl;
+                
                 if (onClothSelect) {
-                    onClothSelect({ id, filename });
+                    onClothSelect({ id, imageUrl});
                 }
             }
         });

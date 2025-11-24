@@ -1,10 +1,14 @@
-import os, uuid
+import os, uuid, io
 from datetime import datetime
+from supabase import create_client, Client
 from PIL import Image
 from fastapi import UploadFile, HTTPException
 from app.config import settings
 from app.repositories.upload_repository import UploadRepository
 from app import models, schemas # For type hinting the return value
+
+#DB connection
+supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 # Custom Exceptions
 class InvalidImageFileError(Exception):
@@ -23,18 +27,23 @@ class UploadService:
 
         ext = os.path.splitext(file.filename)[1].lower()
         save_name = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex}{ext}"
-        save_path = os.path.join(settings.PERSON_RESOURCE_DIR, save_name)
 
         contents = await file.read()
-        with open(save_path, "wb") as f:
-            f.write(contents)
 
         try:
-            img = Image.open(save_path)
-            img.load()
+            image = Image.open(io.BytesIO(contents))
+            image.verify() # 파일이 깨졌는지 확인
         except Exception:
-            os.remove(save_path)
             raise ImageProcessingError("손상된 이미지입니다.")
+
+        try:
+            supabase.storage.from_("person_photo").upload(
+                path=save_name,
+                file=contents,
+                file_options={"content-type": file.content_type}
+            )
+        except Exception as e:
+            raise Exception(f"Supabase(person_photo) 업로드 실패: {e}")
 
         new_photo = self.upload_repo.create_person_photo(
             user_id=user_id,
@@ -49,17 +58,25 @@ class UploadService:
 
         ext = os.path.splitext(file.filename)[1].lower()
         save_name = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex}{ext}"
-        save_path = os.path.join(settings.CLOTH_RESOURCE_DIR, save_name)
 
         contents = await file.read()
-        with open(save_path, "wb") as f:
-            f.write(contents)
 
         try:
-            Image.open(save_path).verify()
+            image = Image.open(io.BytesIO(contents))
+            image.verify()
         except Exception:
-            os.remove(save_path)
             raise ImageProcessingError("손상된 이미지입니다.")
+        
+        try:
+            supabase.storage.from_("cloth_photo").upload(
+            path=save_name,          # 저장될 파일 이름
+            file=contents,           # 파일의 실제 데이터
+            file_options={"content-type": file.content_type} # 이미지 타입 알려주기 (jpg/png 등)
+    )
+        except Exception as e:
+             raise Exception(f"Supabase 업로드 실패: {e}")
+
+
 
         new_cloth = self.upload_repo.create_cloth_photo(
             user_id=user_id,
