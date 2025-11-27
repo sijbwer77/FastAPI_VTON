@@ -1,7 +1,7 @@
 from typing import List
 from enum import Enum
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 
 from app.services.image_service import ImageService, get_image_service
 from app.utils.security import get_current_user
@@ -68,7 +68,6 @@ async def get_public_images_list(
     image_service: ImageService = Depends(get_image_service)
 ):
     """
-
     'clothes' 또는 'results' 카테고리의 이미지 파일 목록을 반환합니다.
     """
     if category == ImageCategory.persons:
@@ -77,6 +76,9 @@ async def get_public_images_list(
             detail="Access to person images requires authentication. Please use the /images/persons endpoint.",
         )
     
+    # Note: This endpoint might be problematic if it returns objects without 'image_url' set 
+    # because get_all_photos_by_category just returns DB models.
+    # For now we leave it as is, but ideally, it should also enrich with URLs.
     images = image_service.get_image_list_by_category(category.value)
     if images is None:
         raise HTTPException(
@@ -94,12 +96,23 @@ async def get_image(
     """
     지정된 카테고리에서 특정 이름의 이미지 파일을 반환합니다.
     """
-    image_path = image_service.get_image_file_path(category.value, image_name)
+    # Mapping category to bucket name
+    bucket_map = {
+        "clothes": "cloth_photo",
+        "persons": "person_photo",
+        "results": "result_photo"
+    }
+    bucket = bucket_map.get(category.value)
+    
+    if not bucket:
+         raise HTTPException(status_code=400, detail="Invalid category")
 
-    if image_path is None:
+    url = image_service.image_repo.get_public_url(bucket, image_name)
+
+    if not url:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Image not found or invalid name.",
         )
     
-    return FileResponse(image_path)
+    return RedirectResponse(url)

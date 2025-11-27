@@ -1,14 +1,9 @@
 import os, uuid, io
 from datetime import datetime
-from supabase import create_client, Client
 from PIL import Image
-from fastapi import UploadFile, HTTPException
-from app.config import settings
+from fastapi import UploadFile
 from app.repositories.upload_repository import UploadRepository
-from app import models, schemas # For type hinting the return value
-
-#DB connection
-supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+from app import schemas
 
 # Custom Exceptions
 class InvalidImageFileError(Exception):
@@ -36,14 +31,12 @@ class UploadService:
         except Exception:
             raise ImageProcessingError("손상된 이미지입니다.")
 
-        try:
-            supabase.storage.from_("person_photo").upload(
-                path=save_name,
-                file=contents,
-                file_options={"content-type": file.content_type}
-            )
-        except Exception as e:
-            raise Exception(f"Supabase(person_photo) 업로드 실패: {e}")
+        self.upload_repo.upload_file(
+            bucket="person_photo",
+            path=save_name,
+            file_content=contents,
+            content_type=file.content_type
+        )
 
         new_photo = self.upload_repo.create_person_photo(
             user_id=user_id,
@@ -67,16 +60,12 @@ class UploadService:
         except Exception:
             raise ImageProcessingError("손상된 이미지입니다.")
         
-        try:
-            supabase.storage.from_("cloth_photo").upload(
-            path=save_name,          # 저장될 파일 이름
-            file=contents,           # 파일의 실제 데이터
-            file_options={"content-type": file.content_type} # 이미지 타입 알려주기 (jpg/png 등)
-    )
-        except Exception as e:
-             raise Exception(f"Supabase 업로드 실패: {e}")
-
-
+        self.upload_repo.upload_file(
+            bucket="cloth_photo",
+            path=save_name,
+            file_content=contents,
+            content_type=file.content_type
+        )
 
         new_cloth = self.upload_repo.create_cloth_photo(
             user_id=user_id,

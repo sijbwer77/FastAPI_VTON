@@ -13,15 +13,6 @@ class ImageService:
     def __init__(self, image_repo: ImageRepository, photo_repo: PhotoRepository):
         self.image_repo = image_repo
         self.photo_repo = photo_repo
-        self.db_url = f"{settings.SUPABASE_URL}/storage/v1/object/public"
-
-    def _generate_url(self, bucket: str, filename: str) -> str:
-        """
-        파일명을 받아서 전체 URL을 만들어주는 내부 도우미 함수
-        """
-        if not filename:
-            return None
-        return f"{self.db_url}/{bucket}/{filename}"
 
     def get_shop_cloth_list(self) -> List[Dict[str,Any]]:
         """
@@ -38,7 +29,7 @@ class ImageService:
         result = []
         for photo in photos:
             # 🟢 [핵심] 옷 사진은 'cloth_photo' 버킷에서 URL 생성
-            url = self._generate_url("cloth_photo", photo.filename)
+            url = self.image_repo.get_public_url("cloth_photo", photo.filename)
             
             result.append({
                 "id": photo.id,
@@ -57,7 +48,7 @@ class ImageService:
         result = []
         for photo in photos:
             # 🟢 [핵심] 전신 사진은 'person_photo' 버킷에서 URL 생성
-            url = self._generate_url("person_photo", photo.filename)
+            url = self.image_repo.get_public_url("person_photo", photo.filename)
             
             result.append({
                 "id": photo.id,
@@ -82,4 +73,3 @@ def get_image_service(db: Session = Depends(get_db)) -> ImageService:
     image_repo = ImageRepository(db)
     photo_repo = PhotoRepository(db)
     return ImageService(image_repo, photo_repo)
-

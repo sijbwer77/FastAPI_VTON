@@ -3,6 +3,7 @@ import logging
 from typing import List, Optional, Type, Dict
 from sqlalchemy.orm import Session
 from app.models import PersonPhoto, ClothPhoto, ResultPhoto, Base
+from app.utils.supabase_client import supabase
 
 # --- Constants ---
 CATEGORY_DIRS = {
@@ -67,6 +68,24 @@ class ImageRepository:
         from app.config import settings # 순환 참조 방지를 위해 함수 내에서 임포트
         shop_user_id = settings.SHOP_USER_ID
         return self.db.query(ClothPhoto).filter(ClothPhoto.user_id == shop_user_id).all()
+
+    def get_public_url(self, bucket: str, filename: str) -> Optional[str]:
+        """
+        Supabase Storage에서 파일의 공개 URL을 가져옵니다.
+        """
+        if not filename:
+            return None
+        return supabase.storage.from_(bucket).get_public_url(filename)
+
+    def download_image(self, bucket: str, filename: str) -> bytes:
+        """
+        Supabase Storage에서 파일을 다운로드하여 바이트로 반환합니다.
+        """
+        try:
+            return supabase.storage.from_(bucket).download(filename)
+        except Exception as e:
+            logging.error(f"Failed to download image {filename} from {bucket}: {e}")
+            raise e
 
     def get_image_path(self, category: str, image_name: str) -> Optional[str]:
         """

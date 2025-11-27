@@ -1,10 +1,21 @@
 from sqlalchemy.orm import Session
 from app import models
 from datetime import datetime
+from app.utils.supabase_client import supabase
 
 class UploadRepository:
     def __init__(self, db: Session):
         self.db = db
+
+    def upload_file(self, bucket: str, path: str, file_content: bytes, content_type: str):
+        try:
+            supabase.storage.from_(bucket).upload(
+                path=path,
+                file=file_content,
+                file_options={"content-type": content_type}
+            )
+        except Exception as e:
+            raise Exception(f"Supabase({bucket}) 업로드 실패: {e}")
 
     def create_person_photo(self, user_id: int, filename_original: str, filename: str) -> models.PersonPhoto:
         new_photo = models.PersonPhoto(
