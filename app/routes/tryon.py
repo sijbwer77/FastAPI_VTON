@@ -33,15 +33,16 @@ async def tryon(
     current_user: models.User = Depends(get_current_user)
 ):
     try:
-        result = await tryon_service.create_tryon_result(
+        result_data = await tryon_service.create_tryon_result(
             user_id=current_user.id,
             person_photo_id=req.person_photo_id,
             cloth_photo_id=req.cloth_photo_id
         )
         return {
             "message": "합성 완료",
-            "result_id": result.id,
-            "result_filename": result.filename,
+            "result_id": result_data["id"],
+            "result_filename": result_data["filename"],
+            "result_url": result_data["image_url"] # Include the generated image URL
         }
     except PhotoNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -6,6 +6,7 @@ from app.repositories.image_repository import ImageRepository
 from app.repositories.upload_repository import UploadRepository
 from app.services import vton_service
 from app import schemas
+from typing import Dict, Any
 
 # Custom Exceptions
 class PhotoNotFoundError(Exception):
@@ -36,7 +37,7 @@ class TryonService:
         else:
             return 'image/png' # Default
 
-    async def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> schemas.Photo:
+    async def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> Dict[str, Any]:
         person_photo = self.photo_repo.get_person_photo_by_id(person_photo_id, user_id)
         if not person_photo:
             raise PhotoNotFoundError("선택한 사람 사진을 찾을 수 없습니다.")
@@ -86,4 +87,11 @@ class TryonService:
             cloth_photo_id=cloth_photo_id,
             filename=result_filename,
         )
-        return new_result
+
+        result_image_url = self.image_repo.get_public_url("result_photo", result_filename)
+
+        return {
+            "id": new_result.id,
+            "filename": new_result.filename,
+            "image_url": result_image_url
+        }
