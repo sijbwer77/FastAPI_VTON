@@ -16,7 +16,10 @@ if "sqlite" in settings.DATABASE_URL:
 
 # 3. engine을 한 번만 생성합니다.
 engine = create_engine(
-    settings.DATABASE_URL, **engine_args
+    settings.DATABASE_URL, 
+    pool_pre_ping=True, 
+    pool_recycle=300,
+    **engine_args
 )
 # --- (이하 코드는 전혀 수정할 필요 없음) ---
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

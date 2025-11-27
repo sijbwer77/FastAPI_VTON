@@ -9,6 +9,7 @@ class UploadRepository:
 
     def upload_file(self, bucket: str, path: str, file_content: bytes, content_type: str):
         try:
+            # Using the global 'supabase' client which should be initialized with SERVICE_ROLE_KEY
             supabase.storage.from_(bucket).upload(
                 path=path,
                 file=file_content,

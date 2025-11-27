@@ -16,7 +16,7 @@ class UploadService:
     def __init__(self, upload_repo: UploadRepository):
         self.upload_repo = upload_repo
 
-    async def upload_person_photo(self, file: UploadFile, user_id: int = 1) -> schemas.Photo: # TODO: user_id from auth
+    async def upload_person_photo(self, file: UploadFile, user_id: int) -> schemas.Photo:
         if not file.filename.lower().endswith(('.jpg','.jpeg','.png')):
             raise InvalidImageFileError('jpg, jpeg, png 만 가능합니다')
 
@@ -27,7 +27,7 @@ class UploadService:
 
         try:
             image = Image.open(io.BytesIO(contents))
-            image.verify() # 파일이 깨졌는지 확인
+            image.verify()
         except Exception:
             raise ImageProcessingError("손상된 이미지입니다.")
 
@@ -45,7 +45,7 @@ class UploadService:
         )
         return new_photo
 
-    async def upload_cloth_photo(self, file: UploadFile, user_id: int = 1, fitting_type: str = "upper") -> schemas.Photo: # TODO: user_id from auth, fitting_type logic
+    async def upload_cloth_photo(self, file: UploadFile, user_id: int, fitting_type: str = "upper") -> schemas.Photo:
         if not file.filename.lower().endswith((".jpg", ".jpeg", ".png")):
             raise InvalidImageFileError("jpg, jpeg, png만 가능합니다")
 

@@ -5,7 +5,7 @@ from app.repositories.result_repository import ResultRepository
 from app.repositories.image_repository import ImageRepository
 from app.repositories.upload_repository import UploadRepository
 from app.services import vton_service
-from app import models, schemas # For type hinting the return value
+from app import schemas
 
 # Custom Exceptions
 class PhotoNotFoundError(Exception):
@@ -36,7 +36,7 @@ class TryonService:
         else:
             return 'image/png' # Default
 
-    def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> schemas.Photo:
+    async def create_tryon_result(self, user_id: int, person_photo_id: int, cloth_photo_id: int) -> schemas.Photo:
         person_photo = self.photo_repo.get_person_photo_by_id(person_photo_id, user_id)
         if not person_photo:
             raise PhotoNotFoundError("선택한 사람 사진을 찾을 수 없습니다.")
@@ -45,14 +45,12 @@ class TryonService:
         if not cloth_photo:
             raise PhotoNotFoundError("선택한 옷 사진을 찾을 수 없습니다.")
 
-        # 3) Supabase에서 이미지 다운로드
         try:
             person_image_bytes = self.image_repo.download_image("person_photo", person_photo.filename)
             cloth_image_bytes = self.image_repo.download_image("cloth_photo", cloth_photo.filename)
         except Exception as e:
             raise VtonProcessingError(f"이미지 다운로드 실패: {e}")
 
-        # 4) VTON 실행
         try:
             if settings.VTON_METHOD == "vertex_ai":
                 result_image_bytes = vton_service.run_vton(
@@ -71,7 +69,6 @@ class TryonService:
         except Exception as e:
             raise VtonProcessingError(f"합성 실패: {e}")
 
-        # 5) 결과 업로드 및 DB 저장
         result_filename = f"{uuid.uuid4().hex}_result.png"
         try:
             self.upload_repo.upload_file(

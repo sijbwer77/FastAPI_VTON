@@ -35,7 +35,8 @@ class Settings(BaseSettings):
 
     # Supabase(DB)
     SUPABASE_URL:str
-    SUPABASE_KEY:str 
+    SUPABASE_KEY:str
+    SUPABASE_SERVICE_ROLE_KEY: Optional[str] = None
 
     GOOGLE_CLOUD_PROJECT: str
     GOOGLE_APPLICATION_CREDENTIALS: str

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.database import get_db
 from app.repositories.user_repository import UserRepository
@@ -29,9 +30,10 @@ def login_for_access_token(
 @router.get('/google/login')
 async def login_via_google(
     request: Request,
+    redirect_uri: Optional[str] = None,
     auth_service: AuthService = Depends(get_auth_service)
 ):
-    return await auth_service.handle_google_login(request)
+    return await auth_service.handle_google_login(request, redirect_uri)
 
 
 @router.get('/google/callback', name='auth_via_google')

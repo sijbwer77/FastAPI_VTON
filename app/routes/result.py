@@ -6,6 +6,8 @@ from app.database import get_db
 from app.services.result_service import ResultService
 from app.repositories.result_repository import ResultRepository
 from app.repositories.image_repository import ImageRepository
+from app.utils.security import get_current_user
+from app import models
 
 router = APIRouter(prefix="/results", tags=["results"])
 
@@ -25,6 +27,12 @@ def get_result_image(filename: str, service: ResultService = Depends(get_result_
 
 # 모든 결과 리스트 조회
 @router.get("/{user_id}")
-def list_results(user_id: int, result_service: ResultService = Depends(get_result_service)):
-    # ResultService now returns the correct structure with Supabase URLs
+async def list_results(
+    user_id: int,
+    result_service: ResultService = Depends(get_result_service),
+    current_user: models.User = Depends(get_current_user)
+):
+    if user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not authorized to view these results")
+        
     return result_service.get_user_results(user_id)

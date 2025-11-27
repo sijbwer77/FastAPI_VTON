@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from app.repositories.result_repository import ResultRepository
 from app.repositories.image_repository import ImageRepository
-from app import models, schemas # For type hinting the return value
+from app import models, schemas
 
 class ResultService:
     def __init__(self, result_repo: ResultRepository, image_repo: ImageRepository):
